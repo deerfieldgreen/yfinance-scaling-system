@@ -1,0 +1,21 @@
+### symbols.txt
+
+
+
+# Define the stock symbols
+symbols = [
+    "NVDA", 
+    "MSFT", 
+    "AAPL", 
+    "META", 
+    "AMZN", 
+    "COST", 
+    "TSLA", 
+    "GOOGL", 
+    "GOOG", 
+    "BABA", 
+    "PYPL",  
+    "AMD", 
+    "BABA",
+    "AVGO"
+    ]
