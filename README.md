@@ -3,6 +3,11 @@ yfinance-scaling-system - all data related to yfinance; we source the data and d
 
 
 
+- https://github.com/ranaroussi/yfinance/tree/main
+- https://pypi.org/project/yfinance/
+
+
+
 
 ### Stock Splits 
 - Lookback Months are/is 60
