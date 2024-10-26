@@ -32,3 +32,4 @@ print("R-squared:", model.score(X, y))
 # Beta: 1.203753970272703
 # Alpha: 0.00047515942120737254
 # R-squared: 0.6277373045486645
+
