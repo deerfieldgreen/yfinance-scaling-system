@@ -10,9 +10,7 @@ symbols = df['symbol'].unique()
 for symbol in symbols:
     df_symbol = df[df['symbol'] == symbol]  # Filter DataFrame for the current symbol
 
-    print(f"\n################################################################")
-    print(f"\n################################################################")
-    print(f"\n################################################################")
+
     print(f"\n################################################################")
     print(f"\nStatistics for Symbol: {symbol}")
 
@@ -28,7 +26,7 @@ for symbol in symbols:
     # Quantiles
     print("\nQuantiles:")
     print(df_numeric.quantile([0.25, 0.5, 0.75]))
-    
+
 
     # Other statistics
     print("\nOther Statistics:")
