@@ -1,5 +1,6 @@
 ## this came from lstm-mean-std.py code
 ## predictions.txt
+## - https://github.com/deerfieldgreen/yfinance-scaling-system/blob/main/statistics/lstm-mean-std.py
 
 Overall Results:
 |    | Stock   | Mean Open   | Std Dev Open   | Mean Close   | Std Dev Close   | Mean Volume   | Std Dev Volume   |
