@@ -8,7 +8,7 @@ from tensorflow.keras.layers import LSTM, Dense
 # Define the stocks to analyze
 stocks = ["AAPL", "META", "TSLA"]
 
-# Create an empty DataFrame to store the results with correct data types
+# Create an empty DataFrame to store the overall results with correct data types
 results = pd.DataFrame({
     "Stock": pd.Series(dtype="str"),
     "Mean Open": pd.Series(dtype=np.float64),
@@ -19,13 +19,16 @@ results = pd.DataFrame({
     "Std Dev Volume": pd.Series(dtype=np.float64)
 })
 
+# Create an empty DataFrame to store the predictions
+predictions_df = pd.DataFrame(columns=["Stock", "Predicted Closing Price", "Std Dev of Predictions"])
+
 # Loop through each stock
 for stock in stocks:
     # Create a Ticker object
     ticker = yf.Ticker(stock)
 
     # Download hourly data for the last 100 hours
-    data = ticker.history(period="1d", interval="1h")  # Fetch 5 days of data to ensure 100 hours
+    data = ticker.history(period="1mo", interval="1h")  # Fetch 5 days of data to ensure 100 hours
 
     # Extract data for the current stock
     stock_data = data["Close"]  # Use Close for hourly data
@@ -75,7 +78,28 @@ for stock in stocks:
     model.fit(X, Y, epochs=100, batch_size=1, verbose=2)
 
     # Make predictions
-    # ... (Code to make predictions and inverse transform to get actual values) ...
+    train_predict = model.predict(X)
 
-# Print the results
+    # Inverse transform the predictions to get actual closing price values
+    train_predict = scaler.inverse_transform(train_predict)
+    Y_actual = scaler.inverse_transform(Y.reshape(-1, 1))
+
+    # Calculate standard deviation of predicted closing prices
+    std_dev_pred = np.std(train_predict)
+
+    # Append predictions to the DataFrame
+    new_pred_row = pd.DataFrame({"Stock": [stock], 
+                                 "Predicted Closing Price": [train_predict[-1][0]], 
+                                 "Std Dev of Predictions": [std_dev_pred]})
+    predictions_df = pd.concat([predictions_df, new_pred_row], ignore_index=True)
+
+# Print the overall results
+print("\nOverall Results:")
 print(results.to_markdown(numalign="left", stralign="left"))
+
+# Print the predictions
+print("\nPredictions:")
+print(predictions_df.to_markdown(numalign="left", stralign="left"))
+
+
+
