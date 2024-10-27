@@ -53,45 +53,57 @@ for stock in stocks:
                               "Std Dev Volume": [std_volume]})
     results = pd.concat([results, new_row], ignore_index=True)
 
+   
     # Prepare data for LSTM
     # Scale the data
     scaler = MinMaxScaler()
     data["Close"] = scaler.fit_transform(np.array(data["Close"]).reshape(-1, 1))
 
-    # Create sequences for LSTM
+    # Create sequences for LSTM (modified for two outputs)
     look_back = 10  # Number of previous hours to consider
     X, Y = [], []
     for i in range(len(data) - look_back - 1):
         X.append(data["Close"][i:(i + look_back)])
-        Y.append(data["Close"][i + look_back])
+        Y.append([data["Close"][i + look_back], np.std(data["Close"][i:(i + look_back)])]) # Close price and its std dev
     X, Y = np.array(X), np.array(Y)
 
     # Reshape input to be [samples, time steps, features] which is required for LSTM
     X = X.reshape(X.shape[0], X.shape[1], 1)
 
-    # Create and train the LSTM model
+    # Create and train the LSTM model (modified for two outputs)
     model = Sequential()
     model.add(LSTM(units=50, return_sequences=True, input_shape=(X.shape[1], 1)))
     model.add(LSTM(units=50))
-    model.add(Dense(1))
+    model.add(Dense(2))
+
+    # Two output neurons for closing price and std dev
     model.compile(loss='mean_squared_error', optimizer='adam')
-    model.fit(X, Y, epochs=100, batch_size=1, verbose=2)
+    model.fit(X, Y, epochs=25, batch_size=1, verbose=2)
 
     # Make predictions
     train_predict = model.predict(X)
 
     # Inverse transform the predictions to get actual closing price values
-    train_predict = scaler.inverse_transform(train_predict)
-    Y_actual = scaler.inverse_transform(Y.reshape(-1, 1))
+    predicted_closing_price = scaler.inverse_transform(train_predict[:, 0].reshape(-1, 1))
+    actual_closing_price = scaler.inverse_transform(Y[:, 0].reshape(-1, 1))
 
-    # Calculate standard deviation of predicted closing prices
-    std_dev_pred = np.std(train_predict)
+    # Extract predicted standard deviation
+    predicted_std_dev = train_predict[:, 1]
 
-    # Append predictions to the DataFrame
+    # Append predictions to the DataFrame (corrected)
     new_pred_row = pd.DataFrame({"Stock": [stock], 
-                                 "Predicted Closing Price": [train_predict[-1][0]], 
-                                 "Std Dev of Predictions": [std_dev_pred]})
+                                 "Predicted Closing Price": [predicted_closing_price[-1][0]], 
+                                 "Std Dev of Predictions": [predicted_std_dev[-1]]})  # Use predicted_std_dev
     predictions_df = pd.concat([predictions_df, new_pred_row], ignore_index=True)
+
+
+
+
+
+
+
+
+
 
 # Print the overall results
 print("\nOverall Results:")
