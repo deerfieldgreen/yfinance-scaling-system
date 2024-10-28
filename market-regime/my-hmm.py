@@ -8,7 +8,7 @@ from sklearn.preprocessing import StandardScaler
 # --- Data Acquisition using yfinance ---
 tickers = ["SPY"]
 end_date = datetime.date.today()
-start_date = end_date - datetime.timedelta(days=50)
+start_date = end_date - datetime.timedelta(days=700)
 
 spy = yf.download(tickers, start=start_date, end=end_date, interval="1d")
 
@@ -61,3 +61,50 @@ results_df = pd.DataFrame({
 
 # --- Print the DataFrame ---
 print(results_df)
+
+
+
+
+# --- Track Regime Changes ---
+def track_regime_changes(df):
+    regime_changes = []
+    current_regime = None
+    start_date = None
+    for i in range(len(df)):
+        regime = df["Regime"].iloc[i]
+        date = df["Date"].iloc[i]
+        if regime != current_regime:
+            if current_regime is not None:
+                regime_changes.append(
+                    {
+                        "Start_Date": start_date,
+                        "End_Date": df["Date"].iloc[i - 1],
+                        "Regime": current_regime,
+                        "Duration_Days": (df["Date"].iloc[i - 1] - start_date).days,
+                    }
+                )
+            current_regime = regime
+            start_date = date
+    # Add the last regime change
+    if current_regime is not None:
+        regime_changes.append(
+            {
+                "Start_Date": start_date,
+                "End_Date": df["Date"].iloc[-1],
+                "Regime": current_regime,
+                "Duration_Days": (df["Date"].iloc[-1] - start_date).days,
+            }
+        )
+    return pd.DataFrame(regime_changes)
+
+regime_changes_df = track_regime_changes(results_df)
+
+# --- Print the Regime Changes DataFrame ---
+print("#######################################")
+print("#######################################")
+print("#######################################")
+print("#######################################")
+print(regime_changes_df)
+
+
+
