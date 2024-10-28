@@ -1,27 +1,63 @@
 import yfinance as yf
 import pandas as pd
+import numpy as np
 from hmmlearn import hmm
+import datetime
+from sklearn.preprocessing import StandardScaler
 
-# Download SPY data from Yahoo Finance
-spy = yf.download("SPY", period="725d")
+# --- Data Acquisition using yfinance ---
+tickers = ["SPY"]
+end_date = datetime.date.today()
+start_date = end_date - datetime.timedelta(days=50)
 
-# Calculate log returns
-spy["log_returns"] = np.log(spy["Adj Close"] / spy["Adj Close"].shift(1))
-spy.dropna(inplace=True)
+spy = yf.download(tickers, start=start_date, end=end_date, interval="1d")
 
-# Fit a 2-state Hidden Markov Model
-model = hmm.GaussianHMM(n_components=2, covariance_type="full", n_iter=100)
-model.fit(spy[["log_returns"]])
+# --- Data Preprocessing ---
+data = spy.copy()
 
-# Predict the hidden states (market regimes)
-spy["state"] = model.predict(spy[["log_returns"]])
+# --- Flatten the MultiIndex ---
+data.columns = ['_'.join(col).strip() for col in data.columns.values] 
 
-# Print the model parameters
-print("Transition matrix:")
-print(model.transmat_)
-print("\nMeans and stds of each state:")
-for i in range(model.n_components):
-    print(f"State {i}: Mean = {model.means_[i][0]:.4f}, Std = {np.sqrt(model.covars_[i][0][0]):.4f}")
+# --- Access columns with flattened names ---
+close_prices = data["Close_SPY"]
 
-# Plot the results
-spy["state"].plot(figsize=(12, 6), title="Market Regimes")
+# Calculate daily returns
+daily_returns = close_prices.pct_change()
+
+# Calculate volatility (MSE from moving average) - using bfill() directly
+daily_volatility = (
+    close_prices.rolling(window=10).mean().bfill() - close_prices
+) ** 2
+
+# --- Replace inf with NaN ---
+daily_returns.replace([np.inf, -np.inf], np.nan, inplace=True)
+daily_volatility.replace([np.inf, -np.inf], np.nan, inplace=True)
+
+# --- Drop missing values ---
+daily_returns.dropna(inplace=True)
+daily_volatility.dropna(inplace=True)
+
+# --- Ensure both Series have the same length ---
+daily_volatility = daily_volatility.loc[daily_returns.index]  # Align with daily_returns index
+
+# --- Feature Scaling ---
+scaler = StandardScaler()
+scaled_data = scaler.fit_transform(np.column_stack((daily_returns, daily_volatility)))
+
+# --- HMM Model Training ---
+model = hmm.GaussianHMM(n_components=3, covariance_type="full")
+model.fit(scaled_data)
+
+# --- Regime Prediction ---
+hidden_states = model.predict(scaled_data)
+
+# --- Create a new DataFrame to store the results ---
+results_df = pd.DataFrame({
+    "Date": daily_returns.index,  # Use the index from daily_returns
+    "Regime": hidden_states,
+    "Daily_Returns": daily_returns,
+    "Daily_Volatility": daily_volatility
+})
+
+# --- Print the DataFrame ---
+print(results_df)
