@@ -21,24 +21,23 @@ lookback_months = pd.Timestamp(lookback_months, tz='America/New_York')
 ```
 
 - a short list of equities: 
+- https://github.com/deerfieldgreen/yfinance-scaling-system/blob/main/stock-splits/symbols.txt
 ```
 
 # Define the stock symbols
-symbols = [
-    "NVDA", 
-    "MSFT", 
-    "AAPL", 
-    "META", 
-    "AMZN", 
-    "COST", 
-    "TSLA", 
-    "GOOGL", 
-    "GOOG", 
-    "BABA", 
-    "PYPL",  
-    "AMD", 
-    "BABA",
-    "AVGO"
-    ]
+
+NVDA
+MSFT
+AAPL
+META
+AMZN
+COST
+TSLA
+GOOGL
+GOOG
+BABA
+PYPL
+AMD
+AVGO
 
 ```
