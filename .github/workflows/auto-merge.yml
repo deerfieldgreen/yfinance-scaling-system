@@ -3,8 +3,9 @@ name: Auto Merge
 on:
   push:
     branches:
-      - 'auto-update-**' # Matches any branch starting with 'auto-update-**'
-    workflow_dispatch: # Allows manual triggering
+      - 'feature/**' # Matches any branch starting with 'feature/'
+  workflow_dispatch: # Allows manual triggering
+
 jobs:
   automerge:
     runs-on: ubuntu-latest
@@ -23,3 +24,14 @@ jobs:
           PR_LABELS: 'automerge'
           AUTO_APPROVE: true # Automatically approve the PR
           MERGE_METHOD: merge # Merge method to use (merge, squash, rebase)
+
+      - name: Delete branch
+        uses: actions/github-script@v6
+        if: ${{ github.ref_type == 'branch' }} # Only run if triggered by a branch push
+        with:
+          script: |
+            github.rest.git.deleteRef({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: `heads/${context.ref_name}`
+            })
