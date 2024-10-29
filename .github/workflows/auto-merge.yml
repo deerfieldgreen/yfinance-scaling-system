@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - 'auto-update-**' # Matches any branch starting with 'auto-update-**'
-
+    workflow_dispatch: # Allows manual triggering
 jobs:
   automerge:
     runs-on: ubuntu-latest
