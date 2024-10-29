@@ -43,31 +43,10 @@ def generate_stock_splits():
               }
               all_split_data.append(split_data)
 
-#  return pd.DataFrame(all_split_data)
+  #  return pd.DataFrame(all_split_data)
   df = pd.DataFrame(all_split_data)
   df.to_csv("data/stock_splits_data.csv", index=False)
 
   return True
-
-
-
-#if __name__ == "__main__":
-  # Read the stock symbols from the text file
-#  with open("symbols.txt", "r") as f:
-#      symbols = [line.strip() for line in f]
-
-  # Get today's date
-#  today = datetime.date.today()
-
-  # Calculate the date 60 months ago
-#  lookback_months = today - datetime.timedelta(days=60 * 30.5)
-#  lookback_months = pd.Timestamp(lookback_months, tz='America/New_York')
-
-  # Fetch and save the stock split data
-#  df = get_stock_splits(symbols, lookback_months)
-#  df.to_csv("stock_splits_data.csv", index=False)
-
-
-
 
 
