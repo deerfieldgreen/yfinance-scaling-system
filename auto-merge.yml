@@ -1,0 +1,25 @@
+name: Auto Merge
+
+on:
+  push:
+    branches:
+      - 'auto-updates/auto-update-**' # Matches any branch starting with 'feature/'
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Merge to main
+        uses: ridedott/merge-pull-request@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: main # Target branch
+          BRANCH_PREFIX: 'feature/' # Prefix to remove from branch name for PR title
+          COMMIT_MESSAGE: 'chore: Auto merge from ${{ github.ref_name }}'
+          PR_BODY: 'Auto-generated pull request.'
+          PR_LABELS: 'automerge'
+          AUTO_APPROVE: true # Automatically approve the PR
+          MERGE_METHOD: merge # Merge method to use (merge, squash, rebase)
