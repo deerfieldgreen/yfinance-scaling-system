@@ -2,7 +2,7 @@ import datetime
 import numpy as np
 import pandas as pd
 from hmmlearn import hmm
-from scipy.stats import kstest, norm, lognorm, pareto, gamma, beta, expon
+from scipy.stats import kstest, norm, gamma, beta, expon
 from sklearn.preprocessing import StandardScaler
 import yfinance as yf
 import warnings
@@ -10,7 +10,7 @@ import warnings
 # --- Data Acquisition using yfinance ---
 tickers = ["SPY"]
 end_date = datetime.date.today()
-start_date = end_date - datetime.timedelta(days=60)
+start_date = end_date - datetime.timedelta(days=255)
 
 spy = yf.download(tickers, start=start_date, end=end_date, interval="1h")
 
@@ -25,49 +25,91 @@ data['Volatility'] = (data['Close'] - data['Close'].rolling(window=10).mean()) *
 
 # Example: Adding momentum (e.g., past month return) and a value proxy
 data['Momentum'] = data['Close'].pct_change(periods=20)  # Monthly momentum
-data['Log Volume'] = np.log(data['Volume'])  # Value proxy
+
+# Handle zero volume before log transformation
+data['Log Volume'] = np.log(data['Volume'].replace(0, 1e-10))  # Replace 0 with a small value
+
+
+
 
 # Feature scaling using StandardScaler
 scaler = StandardScaler()
 # Standardize the additional features and include in the model training
-data[['Daily Returns', 'Volatility', 'Momentum', 'Log Volume']] = scaler.fit_transform(data[['Daily Returns', 'Volatility', 'Momentum', 'Log Volume']])
-
-
+data[['Daily Returns', 'Volatility', 'Momentum', 'Log Volume']] = scaler.fit_transform(
+    data[['Daily Returns', 'Volatility', 'Momentum', 'Log Volume']])
 
 # Create DataFrame df
 df = pd.DataFrame(data, index=data.index)[['Daily Returns', 'Volatility']]
 
-# Drop rows with NaN values
-df.dropna(inplace=True)
+# Forward fill NaN values
+df.fillna(method="ffill", inplace=True)
 
-# Initialize and train Gaussian HMM with explicit parameters for convergence
+
+# --- HMM Initialization with Domain Knowledge ---
+
+# 1. Define expected ranges for each state
+#    (Based on your understanding of 'Daily Returns' and 'Volatility')
+
+# Example ranges (adjust these based on your insights)
+state_ranges = {
+    0: {  # Bear Market
+        'Daily Returns': (-0.05, -0.01),  # Example: -5% to -1%
+        'Volatility': (0.005, 0.02),  # Example: Scaled volatility range
+    },
+    1: {  # Bull Market
+        'Daily Returns': (0.01, 0.05),  # Example: 1% to 5%
+        'Volatility': (0.001, 0.01),  # Example: Scaled volatility range
+    },
+    2: {  # Sideways Market
+        'Daily Returns': (-0.01, 0.01),  # Example: -1% to 1%
+        'Volatility': (0.0, 0.005),  # Example: Scaled volatility range
+    }
+}
+
+# --- Initialize the Gaussian HMM ---
 np.random.seed(42)  # Set a random seed to stabilize the convergence
 model = hmm.GaussianHMM(
     n_components=3,
-    covariance_type="full",  # This indicates that the covariance matrices for the Gaussian emissions will be full matrices (as opposed to diagonal or spherical). This allows for more complex relationships between features in the observation data. 
-    n_iter=200,              # This sets the maximum number of iterations for the Baum-Welch algorithm (an iterative procedure used to train HMMs). Increasing the number of iterations can sometimes help with convergence, especially in complex models or with limited data.
-    init_params="",           # Turn off automatic parameter initialization
-    params="mc"               # Fit both mean (m) and covariance (c)
+    covariance_type="full",
+    n_iter=200,
+    init_params="",
+    min_covar=1e-5,  # Add regularization
+    params="mc"
 )
 
-# This line sets the initial state probabilities. startprob_ is a vector that represents the probabilities of starting in each of the hidden states. In this case, the model is more likely to start in state 0 (with a probability of 0.5).
-model.startprob_ = np.array([0.5, 0.3, 0.2]) 
+# Set initial state probabilities
+model.startprob_ = np.array([0.5, 0.3, 0.2])
 
-#This line sets the transition probabilities between the hidden states. transmat_ is a matrix where each row represents a state, and the values in the row indicate the probabilities of transitioning to other states. In this example, the model is more likely to stay in the current state (with a probability of 0.8) and has a smaller probability of transitioning to other states.
-model.transmat_ = np.array([[0.8, 0.1, 0.1], 
-                            [0.1, 0.8, 0.1], 
-                            [0.1, 0.1, 0.8]]) 
+# Set transition probabilities
+model.transmat_ = np.array([[0.8, 0.1, 0.1],
+                           [0.1, 0.8, 0.1],
+                           [0.1, 0.1, 0.8]])
 
+# 2. Initialize means based on the midpoints of the ranges
+model.means_ = np.array([
+    [np.mean(state_ranges[i]['Daily Returns']),
+     np.mean(state_ranges[i]['Volatility'])]
+    for i in range(model.n_components)
+])
 
+# 3. Initialize covariances (example with "full" covariance)
+#    (You might need to adjust these values based on your data)
+model.covars_ = np.array([
+    [[np.var(state_ranges[i]['Daily Returns']) + 1e-5, 0],  # Add a small constant
+     [0, np.var(state_ranges[i]['Volatility']) + 1e-5]]     # Add a small constant
+    for i in range(model.n_components)
+])
+
+# --- Fit the HMM model ---
 model.fit(df[['Daily Returns', 'Volatility']])
 
-# Predict the hidden states using Viterbi algorithm
+# --- Predict the hidden states using Viterbi algorithm ---
 hidden_states = model.predict(df[['Daily Returns', 'Volatility']])
 
-# Add predicted states to DataFrame
+# --- Add predicted states to DataFrame ---
 df['Hidden States'] = hidden_states
 
-# Group by Hidden States and calculate mean and standard deviation
+# --- Group by Hidden States and calculate mean and standard deviation ---
 regime_analysis = df.groupby('Hidden States').agg(['mean', 'std'])[['Daily Returns', 'Volatility']]
 
 # Rename columns for better readability
@@ -77,10 +119,7 @@ regime_analysis.columns = ['Avg Daily Returns', 'Std Daily Returns', 'Avg Volati
 print(regime_analysis.to_markdown(index=True, numalign="left", stralign="left"))
 
 
-
-
-
-
+# --- Function to detect regime ---
 def detect_regime(observation, model):
     """
     Detects the current regime based on the given observation and HMM model.
@@ -135,21 +174,12 @@ def detect_regime(observation, model):
     else:
         return 2  # Sideways regime
 
-# Apply the updated detect_regime function to determine regime per row
+
+# --- Apply the updated detect_regime function to determine regime per row ---
 df['Detected Regime'] = df[['Daily Returns', 'Volatility']].apply(lambda x: detect_regime(x, model), axis=1)
 
+# --- Print the first 5 rows of df ---
+print(df.head().to_markdown(index=True, numalign="left", stralign="left"))
 
-
-
-
-
-# Print the first 5 rows of df
-print(df.to_markdown(index=True, numalign="left", stralign="left"))
-
-# Print the column names and their data types
+# --- Print the column names and their data types ---
 print(df.info())
-
-
-
-
-
