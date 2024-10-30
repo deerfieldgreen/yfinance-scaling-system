@@ -44,15 +44,20 @@ df.dropna(inplace=True)
 np.random.seed(42)  # Set a random seed to stabilize the convergence
 model = hmm.GaussianHMM(
     n_components=3,
-    covariance_type="full",  # full from the paper  
-    n_iter=200,              # Increase iterations to help convergence
+    covariance_type="full",  # This indicates that the covariance matrices for the Gaussian emissions will be full matrices (as opposed to diagonal or spherical). This allows for more complex relationships between features in the observation data. 
+    n_iter=200,              # This sets the maximum number of iterations for the Baum-Welch algorithm (an iterative procedure used to train HMMs). Increasing the number of iterations can sometimes help with convergence, especially in complex models or with limited data.
     init_params="",           # Turn off automatic parameter initialization
     params="mc"               # Fit both mean (m) and covariance (c)
 )
-model.startprob_ = np.array([0.5, 0.3, 0.2])
+
+# This line sets the initial state probabilities. startprob_ is a vector that represents the probabilities of starting in each of the hidden states. In this case, the model is more likely to start in state 0 (with a probability of 0.5).
+model.startprob_ = np.array([0.5, 0.3, 0.2]) 
+
+#This line sets the transition probabilities between the hidden states. transmat_ is a matrix where each row represents a state, and the values in the row indicate the probabilities of transitioning to other states. In this example, the model is more likely to stay in the current state (with a probability of 0.8) and has a smaller probability of transitioning to other states.
 model.transmat_ = np.array([[0.8, 0.1, 0.1], 
                             [0.1, 0.8, 0.1], 
-                            [0.1, 0.1, 0.8]])
+                            [0.1, 0.1, 0.8]]) 
+
 
 model.fit(df[['Daily Returns', 'Volatility']])
 
