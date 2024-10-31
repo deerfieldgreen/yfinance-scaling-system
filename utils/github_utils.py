@@ -62,7 +62,7 @@ def push_to_github():
 
             # Calculate time difference in hours
             time_diff = current_time - modified_time
-            hours_diff = time_diff.total_seconds() / 3600
+            hours_diff = time_diff.total_seconds() / 300
 
             if hours_diff <= 1:  # Check if modified in the last hour
                 logger.info(f"File {filename} has been modified in the last hour. Adding to push list...")
