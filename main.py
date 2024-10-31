@@ -1,4 +1,6 @@
 # main.py
+
+import logging
 from utils.stock_splits import generate_stock_splits
 from utils.github_utils import push_to_github
 
@@ -15,9 +17,18 @@ def main():
   ## Push to GitHub comes last
   push_to_github()
 
-if __name__ == "__main__":
-  main()
 
 
 
 
+
+if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
+    logging.info("Starting my Cloud Run Job")
+
+    main()
+    try:
+        # ... your code logic ...
+        logging.info("Job completed successfully")
+    except Exception as e:
+        logging.error(f"Job failed: {e}")

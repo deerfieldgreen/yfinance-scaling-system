@@ -1,9 +1,10 @@
-FROM python:3.9-slim-buster
+FROM python:3.9-slim  # Use a lightweight Python base image
 
 WORKDIR /app
 
-COPY . /app
-
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "main.py"]
+COPY . .
+
+CMD ["python", "main.py"]  # Command to run your Python script
