@@ -2,12 +2,12 @@ FROM python:3.9-slim  # Use a lightweight Python base image
 
 WORKDIR /app
 
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy the requirements file into the working directory and install dependencies
+COPY ./requirements.txt /app/requirements.txt
+RUN pip install -r requirements.txt
 
+# Copy all other files into the container's working directory
 COPY . .
 
-CMD ["python", "main.py"]  
-
 # Command to run your Python script
-# k
+CMD ["python", "main.py"]
