@@ -46,6 +46,8 @@ def generate_stock_splits():
   #  return pd.DataFrame(all_split_data)
   df = pd.DataFrame(all_split_data)
   df.to_csv("data/stock_splits_data.csv", index=False)
+  df.to_pickle("data/stock_splits_data.pkl")
+ 
 
   return True
 
