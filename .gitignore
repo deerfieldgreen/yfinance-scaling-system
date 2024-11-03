@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+#yFinance Caches
+.yfcache
+
 
 # MacOS
 .DS_Store

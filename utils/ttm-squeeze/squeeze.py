@@ -1,11 +1,23 @@
 import yfinance as yf
 import pandas as pd
+from datetime import datetime, timedelta
 
 yf.set_tz_cache_location(".yf.cache/")  # Cache location for yfinance
 
-# Set the start and end dates
-start_date = '2024-01-01'
-end_date = '2024-10-29'
+# Today's date
+today = datetime.today()
+
+# Calculate the start date as 725 days prior to today
+start_date = today - timedelta(days=725)
+
+# Format the dates as strings
+start_date_str = start_date.strftime("%Y-%m-%d")
+today_str = today.strftime("%Y-%m-%d")
+
+file_path = "../../data/"
+file_name ="ttm-squeeze.pkl"
+
+
 
 # List of symbols
 symbols = [
@@ -26,8 +38,9 @@ squeeze_df = pd.DataFrame(columns=['Symbol', 'Date', 'Close'])
 # Download data for each symbol
 for symbol in symbols:
     try:
-        data = yf.download(symbol, start=start_date, end=end_date)
-
+        # Example of using these dates in a download function
+        data = yf.download(symbol, start=start_date_str, end=today_str)
+    
         if data.empty:
             print(f"No data found for {symbol}")
             continue
@@ -62,12 +75,16 @@ for symbol in symbols:
     except Exception as e:
         print(f"Error downloading or processing data for {symbol}: {e}")
 
+
+
+squeeze_df.to_pickle( file_path + file_name )
+
 # Print the DataFrame
-print("\nSqueeze Events:")
-print(squeeze_df)
+#print("\nSqueeze Events:")
+#print(squeeze_df)
 
 # Loop through the DataFrame and print contents and describe()
-for index, row in squeeze_df.iterrows():
-    print(f"\nEvent {index + 1}:")
-    print(row)
+#for index, row in squeeze_df.iterrows():
+#    print(f"\nEvent {index + 1}:")
+#    print(row)
 
