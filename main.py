@@ -6,7 +6,8 @@ from utils.github_utils import push_to_github
 
 def main():
 
-  exit(0) # temporary to stop endless loop
+  return
+  # exit(0) # temporary to stop endless loop
 
   ## All functions push their data to the ../data/ directory
   generate_stock_splits()
