@@ -2,7 +2,7 @@ import yfinance as yf
 import pandas as pd
 from datetime import datetime, timedelta
 
-yf.set_tz_cache_location(".yf.cache/")  # Cache location for yfinance
+yf.set_tz_cache_location(".yf-cache/")  # Cache location for yfinance
 
 # Today's date
 today = datetime.today()
