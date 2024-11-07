@@ -65,13 +65,27 @@ def push_to_github():
             try:
                 git_file = repo.get_contents(f"{file_dir}/{filename}", ref="main")
                 logger.info(f"Found existing file: {git_file.path}")
-                repo.update_file(
-                    git_file.path,
-                    f"Updated file for {current_time.date()}",
-                    content,
-                    git_file.sha,
-                    branch="main"
-                )
+
+                # Check the last modified time of the file on GitHub
+                git_file_last_modified = git_file.last_modified
+                git_file_modified_time = datetime.datetime.strptime(git_file_last_modified, "%a, %d %b %Y %H:%M:%S %Z")
+                git_file_modified_time = git_file_modified_time.replace(tzinfo=pytz.utc)
+
+                # Calculate time difference in hours
+                git_time_diff = current_time - git_file_modified_time
+                git_hours_diff = git_time_diff.total_seconds() / 3600
+
+                if git_hours_diff > 1:  # Only update if the file on GitHub hasn't been modified in the last hour
+                    repo.update_file(
+                        git_file.path,
+                        f"Updated file for {current_time.date()}",
+                        content,
+                        git_file.sha,
+                        branch="main"
+                    )
+                else:
+                    logger.info(f"File {filename} on GitHub has been modified in the last hour. Skipping update.")
+
             except GithubException as e:
                 if e.status == 404:  # File not found
                     logger.info(f"File not found. Creating a new file.")

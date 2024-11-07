@@ -42,7 +42,6 @@ AVGO
 
 ```
 
-
 ## Docker GCP 
 
 ```
