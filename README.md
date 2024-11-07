@@ -9,7 +9,7 @@ yfinance-scaling-system - all data related to yfinance; we source the data and d
 
 
 
-### Stock Splits 
+## Stock Splits 
 - Lookback Months are/is 60
 
 ```
@@ -42,4 +42,9 @@ AVGO
 
 ```
 
-# dockers
+## Docker GCP 
+
+```
+docker build -t gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system .
+docker push gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system
+```

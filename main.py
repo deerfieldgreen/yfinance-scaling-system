@@ -22,9 +22,8 @@ if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     logging.info("Starting my Cloud Run Job")
 
-    main()
     try:
-        # ... your code logic ...
+        main()
         logging.info("Job completed successfully")
     except Exception as e:
         logging.error(f"Job failed: {e}")
