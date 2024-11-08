@@ -21,7 +21,7 @@ def read_and_encode_file(file_path, encode=True):
 def push_to_github():
     """
     Pushes files from the data directory directly to the main branch of a GitHub repository
-    if there are any changes within the last hour.
+    if there are any changes within the last 15 minutes.
 
     Args:
         repo_name (str): The name of the GitHub repository (e.g., "user/repo").
@@ -50,10 +50,10 @@ def push_to_github():
 
             # Calculate time difference in hours
             time_diff = current_time - modified_time
-            hours_diff = time_diff.total_seconds() / 3600
+            hours_diff = time_diff.total_seconds() / 900
 
             if hours_diff <= 1:  # Check if modified in the last hour
-                logger.info(f"File {filename} has been modified in the last hour. Adding to push list...")
+                logger.info(f"File {filename} has been modified in the 15 minutes hour. Adding to push list...")
                 files_to_push.append(filename)
 
     if files_to_push:
@@ -73,7 +73,7 @@ def push_to_github():
 
                 # Calculate time difference in hours
                 git_time_diff = current_time - git_file_modified_time
-                git_hours_diff = git_time_diff.total_seconds() / 3600
+                git_hours_diff = git_time_diff.total_seconds() / 900
 
                 if git_hours_diff > 1:  # Only update if the file on GitHub hasn't been modified in the last hour
                     repo.update_file(
@@ -84,7 +84,7 @@ def push_to_github():
                         branch="main"
                     )
                 else:
-                    logger.info(f"File {filename} on GitHub has been modified in the last hour. Skipping update.")
+                    logger.info(f"File {filename} on GitHub has been modified in the last 15 minutes. Skipping update.")
 
             except GithubException as e:
                 if e.status == 404:  # File not found
