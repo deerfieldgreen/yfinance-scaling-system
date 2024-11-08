@@ -45,6 +45,6 @@ AVGO
 ## Docker GCP 
 
 ```
-docker build -t gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system .
+docker buildx build --platform linux/amd64 -t gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system .
 docker push gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system
 ```
