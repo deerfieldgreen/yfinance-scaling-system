@@ -16,7 +16,7 @@ tickers = ["SPY"]
 end_date = datetime.date.today()
 start_date = end_date - datetime.timedelta(days=(350 * 1))  # Increased dataset size
 
-spy = yf.download(tickers, start=start_date, end=end_date, interval="1d")
+spy = yf.download(tickers, start=start_date, end=end_date, interval="1h")
 
 # --- Data Preprocessing ---
 data = spy.copy()
