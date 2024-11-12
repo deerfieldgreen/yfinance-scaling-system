@@ -43,3 +43,5 @@ AVGO
 ```
 
 # dockers
+docker build -t gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system .
+docker push gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system

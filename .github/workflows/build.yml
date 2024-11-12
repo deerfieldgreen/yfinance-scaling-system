@@ -1,0 +1,32 @@
+name: Build and Deploy to Cloud Run
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Cloud SDK
+      uses: google-github-actions/setup-gcloud@v1
+      with:
+        version: 'latest'
+        project_id: ${{ secrets.GCP_PROJECT }}
+        service_account_key: ${{ secrets.GCP_KEY }}
+
+    - name: Configure Docker
+      run: gcloud auth configure-docker
+
+    - name: Build Docker image
+      run: |
+        docker build -t gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system .
+
+    - name: Push Docker image to GCR
+      run: |
+        docker push gcr.io/dfg-analytics-insights-prod/yfinance-scaling-system
